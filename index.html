@@ -5,144 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>fler manager</title>
 <style>
-  body{
-    margin:0;
-    font-family:Inter,system-ui,sans-serif;
-    background:#171614;
-    color:#f1ece4;
-  }
-  #app{
-    min-height:100vh;
-  }
-  .shell{
-    display:grid;
-    grid-template-columns:260px 1fr;
-    min-height:100vh;
-  }
-  .sidebar{
-    background:#1c1b19;
-    border-right:1px solid #393836;
-    padding:24px;
-    display:flex;
-    flex-direction:column;
-    gap:16px;
-  }
-  .pill{
-    min-height:38px;
-    border-radius:12px;
-    border:1px solid #393836;
-    background:#201f1d;
-    color:#f1ece4;
-    font-weight:700;
-    cursor:pointer;
-  }
-  .nav{
-    min-height:44px;
-    border:none;
-    border-radius:12px;
-    background:transparent;
-    color:#b6ada1;
-    text-align:left;
-    padding:0 12px;
-    cursor:pointer;
-  }
-  .nav.active{
-    background:rgba(179,93,45,.14);
-    color:#f1ece4;
-  }
-  .content{
-    padding:32px;
-  }
-  .topbar{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:24px;
-  }
-  .panel{
-    background:#1c1b19;
-    border:1px solid #393836;
-    border-radius:18px;
-    padding:24px;
-    display:grid;
-    gap:16px;
-    max-width:420px;
-  }
-  .row{
-    display:grid;
-    gap:6px;
-  }
-  .row label{
-    font-size:12px;
-    text-transform:uppercase;
-    letter-spacing:.08em;
-    color:#b6ada1;
-  }
-  .row input{
-    min-height:46px;
-    border-radius:12px;
-    border:1px solid #393836;
-    background:#201f1d;
-    color:#f1ece4;
-    padding:0 14px;
-  }
-  .actions{
-    display:flex;
-    gap:12px;
-  }
-  .btn{
-    min-height:46px;
-    padding:0 16px;
-    border-radius:12px;
-    border:1px solid #393836;
-    background:#201f1d;
-    color:#f1ece4;
-    font-weight:700;
-    cursor:pointer;
-  }
-  .btn.primary{
-    background:#b35d2d;
-    border-color:#b35d2d;
-  }
-  .status{
-    font-size:13px;
-    color:#b6ada1;
-    min-height:18px;
-  }
-  .hidden{
-    display:none;
-  }
-  .badge{
-    background:#201f1d;
-    border:1px solid #393836;
-    border-radius:999px;
-    padding:6px 14px;
-    font-size:13px;
-    color:#b6ada1;
-    width:fit-content;
-  }
-  .cards{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:16px;
-    margin-top:20px;
-  }
-  .card{
-    background:#1c1b19;
-    border:1px solid #393836;
-    border-radius:16px;
-    padding:20px;
-  }
-  .card h3{
-    margin:0 0 6px;
-    font-size:14px;
-    color:#b6ada1;
-  }
-  .card p{
-    margin:0;
-    font-size:24px;
-    font-weight:700;
-  }
+  body{margin:0;font-family:Inter,system-ui,sans-serif;background:#171614;color:#f1ece4;}
+  #app{min-height:100vh;}
+  .shell{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+  .sidebar{background:#1c1b19;border-right:1px solid #393836;padding:24px;display:flex;flex-direction:column;gap:16px;}
+  .pill{min-height:38px;border-radius:12px;border:1px solid #393836;background:#201f1d;color:#f1ece4;font-weight:700;cursor:pointer;}
+  .nav{min-height:44px;border:none;border-radius:12px;background:transparent;color:#b6ada1;text-align:left;padding:0 12px;cursor:pointer;}
+  .nav.active{background:rgba(179,93,45,.14);color:#f1ece4;}
+  .content{padding:32px;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+  .panel{background:#1c1b19;border:1px solid #393836;border-radius:18px;padding:24px;display:grid;gap:16px;max-width:520px;margin-bottom:24px;}
+  .row{display:grid;gap:6px;}
+  .row label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#b6ada1;}
+  .row input, .row textarea{min-height:46px;border-radius:12px;border:1px solid #393836;background:#201f1d;color:#f1ece4;padding:10px 14px;font-family:inherit;}
+  .actions{display:flex;gap:12px;}
+  .btn{min-height:46px;padding:0 16px;border-radius:12px;border:1px solid #393836;background:#201f1d;color:#f1ece4;font-weight:700;cursor:pointer;}
+  .btn.primary{background:#b35d2d;border-color:#b35d2d;}
+  .status{font-size:13px;color:#b6ada1;min-height:18px;}
+  .badge{background:#201f1d;border:1px solid #393836;border-radius:999px;padding:6px 14px;font-size:13px;color:#b6ada1;width:fit-content;}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+  .card{background:#1c1b19;border:1px solid #393836;border-radius:16px;padding:20px;}
+  .card h3{margin:0 0 6px;font-size:14px;color:#b6ada1;}
+  .card p{margin:0;font-size:24px;font-weight:700;}
+  .list-item{display:flex;justify-content:space-between;align-items:center;border:1px solid #393836;border-radius:12px;padding:10px 14px;margin-bottom:8px;}
+  .del{background:none;border:1px solid #664;color:#e88;border-radius:8px;padding:4px 10px;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -151,14 +37,12 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-  getAuth,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword,
+  createUserWithEmailAndPassword, signOut
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
-  getFirestore
+  getFirestore, collection, addDoc, updateDoc, deleteDoc, doc,
+  getDocs, setDoc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -177,65 +61,52 @@ const db = getFirestore(app);
 const root = document.getElementById('app');
 let lang = 'en';
 let currentUser = null;
+let view = 'dashboard';
 
 const texts = {
-  en: {
-    heading: 'English interface',
-    subtitle: 'Switch with RO button.',
-    langBtn: 'RO',
-    loginBtn: 'Login',
-    createBtn: 'Create account',
-    logoutBtn: 'Logout',
-    emailLabel: 'Email',
-    passwordLabel: 'Password',
-    dashboardTitle: 'Dashboard',
-    welcome: 'Signed in as',
-    products: 'Products',
-    popup: 'Active popup',
-    discounts: 'Active discounts',
-    nav: ['Dashboard', 'Popup ofertă', 'Discounturi']
-  },
-  ro: {
-    heading: 'Interfață în română',
-    subtitle: 'Schimbă limba cu butonul RO/EN.',
-    langBtn: 'EN',
-    loginBtn: 'Autentificare',
-    createBtn: 'Creează cont',
-    logoutBtn: 'Ieșire',
-    emailLabel: 'Email',
-    passwordLabel: 'Parolă',
-    dashboardTitle: 'Panou principal',
-    welcome: 'Autentificat ca',
-    products: 'Produse',
-    popup: 'Popup activ',
-    discounts: 'Discounturi active',
-    nav: ['Dashboard', 'Popup ofertă', 'Discounturi']
-  }
+  en: { title:'fler manager', langBtn:'RO', loginBtn:'Login', createBtn:'Create account',
+    logoutBtn:'Logout', emailLabel:'Email', passwordLabel:'Password',
+    nav:['Dashboard','Popup ofertă','Discounturi'],
+    dashboard:'Dashboard', products:'Products', popup:'Active popup', discounts:'Active discounts',
+    welcome:'Signed in as', addProduct:'Add product', name:'Name', price:'Price (RON)',
+    popupTitle:'Popup title', popupText:'Popup text', save:'Save', discountName:'Discount name', discountValue:'Value (%)' },
+  ro: { title:'fler manager', langBtn:'EN', loginBtn:'Autentificare', createBtn:'Creează cont',
+    logoutBtn:'Ieșire', emailLabel:'Email', passwordLabel:'Parolă',
+    nav:['Dashboard','Popup ofertă','Discounturi'],
+    dashboard:'Panou principal', products:'Produse', popup:'Popup activ', discounts:'Discounturi active',
+    welcome:'Autentificat ca', addProduct:'Adaugă produs', name:'Nume', price:'Preț (RON)',
+    popupTitle:'Titlu popup', popupText:'Text popup', save:'Salvează', discountName:'Nume discount', discountValue:'Valoare (%)' }
 };
 
-function renderLoginView() {
+function sidebar(t, active) {
+  return `
+    <aside class="sidebar">
+      <h1>${t.title}</h1>
+      <button id="langBtn" class="pill">${t.langBtn}</button>
+      <nav>
+        <button class="nav ${active===0?'active':''}" data-view="dashboard">${t.nav[0]}</button>
+        <button class="nav ${active===1?'active':''}" data-view="popup">${t.nav[1]}</button>
+        <button class="nav ${active===2?'active':''}" data-view="discounts">${t.nav[2]}</button>
+      </nav>
+    </aside>`;
+}
+
+function bindNav() {
+  document.getElementById('langBtn').onclick = () => { lang = lang==='en'?'ro':'en'; renderApp(); };
+  document.querySelectorAll('.nav').forEach(btn => {
+    btn.onclick = () => { view = btn.dataset.view; renderApp(); };
+  });
+}
+
+async function renderLoginView() {
   const t = texts[lang];
   root.innerHTML = `
     <main class="shell">
-      <aside class="sidebar">
-        <h1>fler manager</h1>
-        <button id="langBtn" class="pill">${t.langBtn}</button>
-        <nav>
-          <button class="nav active">${t.nav[0]}</button>
-          <button class="nav">${t.nav[1]}</button>
-          <button class="nav">${t.nav[2]}</button>
-        </nav>
-      </aside>
+      ${sidebar(t, 0)}
       <section class="content">
-        <div class="topbar">
-          <div>
-            <h2>${t.heading}</h2>
-            <p>${t.subtitle}</p>
-          </div>
-        </div>
         <div class="panel">
-          <div class="row"><label>${t.emailLabel}</label><input id="email" type="email" placeholder="manager@example.com"></div>
-          <div class="row"><label>${t.passwordLabel}</label><input id="password" type="password" placeholder="••••••••"></div>
+          <div class="row"><label>${t.emailLabel}</label><input id="email" type="email"></div>
+          <div class="row"><label>${t.passwordLabel}</label><input id="password" type="password"></div>
           <div class="actions">
             <button id="loginBtn" class="btn primary">${t.loginBtn}</button>
             <button id="createBtn" class="btn">${t.createBtn}</button>
@@ -243,86 +114,139 @@ function renderLoginView() {
           <div id="status" class="status"></div>
         </div>
       </section>
-    </main>
-  `;
-
-  document.getElementById('langBtn').onclick = () => {
-    lang = lang === 'en' ? 'ro' : 'en';
-    renderLoginView();
-  };
-
+    </main>`;
+  bindNav();
   document.getElementById('loginBtn').onclick = async () => {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const status = document.getElementById('status');
-    status.textContent = '';
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (err) {
-      status.textContent = err.message;
-    }
+    try { await signInWithEmailAndPassword(auth, email, password); }
+    catch (err) { status.textContent = err.message; }
   };
-
   document.getElementById('createBtn').onclick = async () => {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const status = document.getElementById('status');
-    status.textContent = '';
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-    } catch (err) {
-      status.textContent = err.message;
-    }
+    try { await createUserWithEmailAndPassword(auth, email, password); }
+    catch (err) { status.textContent = err.message; }
   };
 }
 
-function renderDashboard() {
+async function renderDashboard() {
   const t = texts[lang];
+  const productsSnap = await getDocs(collection(db, 'products'));
+  const popupSnap = await getDoc(doc(db, 'popup', 'main'));
+  const discountsSnap = await getDocs(collection(db, 'discounts'));
+
   root.innerHTML = `
     <main class="shell">
-      <aside class="sidebar">
-        <h1>fler manager</h1>
-        <button id="langBtn" class="pill">${t.langBtn}</button>
-        <nav>
-          <button class="nav active">${t.nav[0]}</button>
-          <button class="nav">${t.nav[1]}</button>
-          <button class="nav">${t.nav[2]}</button>
-        </nav>
-      </aside>
+      ${sidebar(t, 0)}
       <section class="content">
         <div class="topbar">
           <div>
-            <h2>${t.dashboardTitle}</h2>
+            <h2>${t.dashboard}</h2>
             <div class="badge">${t.welcome}: ${currentUser.email}</div>
           </div>
           <button id="logoutBtn" class="btn">${t.logoutBtn}</button>
         </div>
         <div class="cards">
-          <div class="card"><h3>${t.products}</h3><p>—</p></div>
-          <div class="card"><h3>${t.popup}</h3><p>—</p></div>
-          <div class="card"><h3>${t.discounts}</h3><p>—</p></div>
+          <div class="card"><h3>${t.products}</h3><p>${productsSnap.size}</p></div>
+          <div class="card"><h3>${t.popup}</h3><p>${popupSnap.exists() ? '1' : '0'}</p></div>
+          <div class="card"><h3>${t.discounts}</h3><p>${discountsSnap.size}</p></div>
         </div>
       </section>
-    </main>
-  `;
+    </main>`;
+  bindNav();
+  document.getElementById('logoutBtn').onclick = async () => { await signOut(auth); };
+}
 
-  document.getElementById('langBtn').onclick = () => {
-    lang = lang === 'en' ? 'ro' : 'en';
-    renderDashboard();
-  };
+async function renderPopup() {
+  const t = texts[lang];
+  const popupRef = doc(db, 'popup', 'main');
+  const snap = await getDoc(popupRef);
+  const data = snap.exists() ? snap.data() : { title:'', text:'' };
 
-  document.getElementById('logoutBtn').onclick = async () => {
-    await signOut(auth);
+  root.innerHTML = `
+    <main class="shell">
+      ${sidebar(t, 1)}
+      <section class="content">
+        <div class="topbar">
+          <h2>${t.popup}</h2>
+          <button id="logoutBtn" class="btn">${t.logoutBtn}</button>
+        </div>
+        <div class="panel">
+          <div class="row"><label>${t.popupTitle}</label><input id="pTitle" value="${data.title||''}"></div>
+          <div class="row"><label>${t.popupText}</label><textarea id="pText" rows="3">${data.text||''}</textarea></div>
+          <div class="actions"><button id="saveBtn" class="btn primary">${t.save}</button></div>
+          <div id="status" class="status"></div>
+        </div>
+      </section>
+    </main>`;
+  bindNav();
+  document.getElementById('logoutBtn').onclick = async () => { await signOut(auth); };
+  document.getElementById('saveBtn').onclick = async () => {
+    await setDoc(popupRef, {
+      title: document.getElementById('pTitle').value,
+      text: document.getElementById('pText').value
+    });
+    document.getElementById('status').textContent = 'Saved';
   };
+}
+
+async function renderDiscounts() {
+  const t = texts[lang];
+  const colRef = collection(db, 'discounts');
+  const snap = await getDocs(colRef);
+  let items = '';
+  snap.forEach(d => {
+    const v = d.data();
+    items += `<div class="list-item"><span>${v.name} — ${v.value}%</span><button class="del" data-id="${d.id}">✕</button></div>`;
+  });
+
+  root.innerHTML = `
+    <main class="shell">
+      ${sidebar(t, 2)}
+      <section class="content">
+        <div class="topbar">
+          <h2>${t.discounts}</h2>
+          <button id="logoutBtn" class="btn">${t.logoutBtn}</button>
+        </div>
+        <div class="panel">
+          <div class="row"><label>${t.discountName}</label><input id="dName"></div>
+          <div class="row"><label>${t.discountValue}</label><input id="dValue" type="number"></div>
+          <div class="actions"><button id="addBtn" class="btn primary">${t.save}</button></div>
+        </div>
+        <div class="panel">${items || '—'}</div>
+      </section>
+    </main>`;
+  bindNav();
+  document.getElementById('logoutBtn').onclick = async () => { await signOut(auth); };
+  document.getElementById('addBtn').onclick = async () => {
+    await addDoc(colRef, {
+      name: document.getElementById('dName').value,
+      value: Number(document.getElementById('dValue').value)
+    });
+    renderDiscounts();
+  };
+  document.querySelectorAll('.del').forEach(btn => {
+    btn.onclick = async () => {
+      await deleteDoc(doc(db, 'discounts', btn.dataset.id));
+      renderDiscounts();
+    };
+  });
+}
+
+function renderApp() {
+  if (!currentUser) { renderLoginView(); return; }
+  if (view === 'dashboard') renderDashboard();
+  else if (view === 'popup') renderPopup();
+  else if (view === 'discounts') renderDiscounts();
 }
 
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
-  if (user) {
-    renderDashboard();
-  } else {
-    renderLoginView();
-  }
+  view = 'dashboard';
+  renderApp();
 });
 </script>
 </body>
