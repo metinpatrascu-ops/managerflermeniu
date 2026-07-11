@@ -37,6 +37,8 @@
   .products-list{max-width:820px;}
   .search-row{display:flex;gap:12px;margin-bottom:16px;max-width:820px;}
   .search-row input{flex:1;}
+  select.pcat, .row select{min-height:46px;border-radius:12px;border:1px solid #393836;background:#201f1d;color:#f1ece4;padding:10px 14px;font-family:inherit;}
+  .list-item .rowfields select.pcat{flex:1.5;}
 </style>
 </head>
 <body>
@@ -62,6 +64,9 @@ const firebaseConfig = {
   appId: "1:141246687330:web:46084b41f23a4e7755493b"
 };
 
+
+const CATEGORIES = ["OPENINGS — ALL DAY", "LAYERS", "COMPOSITIONS", "ENSEMBLE", "CENTERPIECE", "HANDHELD", "ADDITIONS", "FINALE", "DAILY RITUAL", "COCKTAILS COMPOSITIONS", "ZERO PROOF STUDIES", "SHOTS RITUALS", "SPIRITS & WINES THE COLLECTION", "REFRESHMENTS & BEER"];
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -79,14 +84,14 @@ const texts = {
     dashboard:'Dashboard', products:'Products', popup:'Active popup', discounts:'Active discounts',
     welcome:'Signed in as', addProduct:'Add product', name:'Name', price:'Price (RON)',
     popupTitle:'Popup title', popupText:'Popup text', save:'Save', discountName:'Discount name', discountValue:'Value (%)',
-    searchPlaceholder:'Search products...', saveRow:'Save', noProducts:'No products found' },
+    searchPlaceholder:'Search products...', saveRow:'Save', noProducts:'No products found', category:'Category' },
   ro: { title:'fler manager', langBtn:'EN', loginBtn:'Autentificare', createBtn:'Creează cont',
     logoutBtn:'Ieșire', emailLabel:'Email', passwordLabel:'Parolă',
     nav:['Dashboard','Produse','Popup ofertă','Discounturi'],
     dashboard:'Panou principal', products:'Produse', popup:'Popup activ', discounts:'Discounturi active',
     welcome:'Autentificat ca', addProduct:'Adaugă produs', name:'Nume', price:'Preț (RON)',
     popupTitle:'Titlu popup', popupText:'Text popup', save:'Salvează', discountName:'Nume discount', discountValue:'Valoare (%)',
-    searchPlaceholder:'Caută produse...', saveRow:'Salvează', noProducts:'Niciun produs găsit' }
+    searchPlaceholder:'Caută produse...', saveRow:'Salvează', noProducts:'Niciun produs găsit', category:'Categorie' }
 };
 
 function sidebar(t, active) {
@@ -195,6 +200,7 @@ async function renderProducts() {
         <div class="rowfields">
           <input class="pname" value="${escapeHtml(p.name)}">
           <input class="pprice" type="number" value="${p.price ?? ''}">
+          <select class="pcat">${CATEGORIES.map(c => `<option value="${escapeHtml(c)}" ${c===p.category?'selected':''}>${escapeHtml(c)}</option>`).join('')}</select>
         </div>
         <button class="save-row" data-id="${p.id}">${t.saveRow}</button>
         <button class="del" data-id="${p.id}">✕</button>
@@ -213,6 +219,7 @@ async function renderProducts() {
         <div class="panel">
           <div class="row"><label>${t.name}</label><input id="newName"></div>
           <div class="row"><label>${t.price}</label><input id="newPrice" type="number"></div>
+          <div class="row"><label>${t.category}</label><select id="newCategory">${CATEGORIES.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')}</select></div>
           <div class="actions"><button id="addBtn" class="btn primary">${t.addProduct}</button></div>
           <div id="addStatus" class="status"></div>
         </div>
@@ -229,8 +236,9 @@ async function renderProducts() {
   document.getElementById('addBtn').onclick = async () => {
     const name = document.getElementById('newName').value.trim();
     const price = Number(document.getElementById('newPrice').value);
+    const category = document.getElementById('newCategory').value;
     if (!name) { document.getElementById('addStatus').textContent = 'Name required'; return; }
-    await addDoc(colRef, { name, price });
+    await addDoc(colRef, { name, price, category });
     productSearch = '';
     renderProducts();
   };
@@ -246,7 +254,8 @@ async function renderProducts() {
       const item = document.querySelector(`.list-item[data-id="${id}"]`);
       const name = item.querySelector('.pname').value.trim();
       const price = Number(item.querySelector('.pprice').value);
-      await updateDoc(doc(db, 'products', id), { name, price });
+      const category = item.querySelector('.pcat').value;
+      await updateDoc(doc(db, 'products', id), { name, price, category });
       btn.textContent = '✓';
       setTimeout(() => { btn.textContent = t.saveRow; }, 1200);
     };
