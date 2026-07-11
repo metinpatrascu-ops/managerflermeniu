@@ -40,6 +40,47 @@
   select.pcat, .row select{min-height:46px;border-radius:12px;border:1px solid #393836;background:#201f1d;color:#f1ece4;padding:10px 14px;font-family:inherit;}
   .list-item .rowfields select.pcat{flex:1.5;}
   .list-item .pdesc{min-height:50px;border-radius:8px;border:1px solid #393836;background:#201f1d;color:#f1ece4;padding:8px 10px;font-family:inherit;width:100%;box-sizing:border-box;resize:vertical;}
+
+  /* --- Responsive optimizations --- */
+  @media (max-width: 900px) {
+    .shell{grid-template-columns:1fr;}
+    .sidebar{
+      position:sticky;top:0;z-index:10;
+      flex-direction:row;align-items:center;
+      overflow-x:auto;
+      padding:14px 16px;
+      gap:10px;
+      border-right:none;
+      border-bottom:1px solid #393836;
+      white-space:nowrap;
+    }
+    .sidebar h1{font-size:16px;margin:0;flex-shrink:0;}
+    .sidebar .pill{flex-shrink:0;}
+    .sidebar nav{display:flex;flex-direction:row;gap:8px;overflow-x:auto;}
+    .sidebar nav .nav{flex-shrink:0;white-space:nowrap;padding:0 14px;}
+    .content{padding:16px;}
+    .panel{max-width:100%;}
+    .cards{grid-template-columns:1fr;}
+    .topbar{flex-direction:column;align-items:flex-start;gap:10px;}
+    .topbar .btn{width:100%;}
+    .list-item{flex-direction:column;align-items:stretch;gap:10px;}
+    .list-item .rowfields{flex-direction:column;align-items:stretch;}
+    .list-item .rowfields input.pname,
+    .list-item .rowfields input.pprice,
+    .list-item .rowfields select.pcat{
+      width:100%;max-width:100%;flex:none;
+    }
+    .list-item .save-row, .list-item .del{width:100%;}
+    .search-row{flex-direction:column;}
+    .search-row input{width:100%;}
+  }
+
+  @media (max-width: 480px) {
+    .sidebar h1{font-size:14px;}
+    .card p{font-size:20px;}
+    .btn, .pill, .nav{font-size:13px;}
+    .row input, .row textarea, select.pcat, .row select{font-size:14px;}
+  }
 </style>
 </head>
 <body>
