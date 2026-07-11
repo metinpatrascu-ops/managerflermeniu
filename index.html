@@ -39,6 +39,7 @@
   .search-row input{flex:1;}
   select.pcat, .row select{min-height:46px;border-radius:12px;border:1px solid #393836;background:#201f1d;color:#f1ece4;padding:10px 14px;font-family:inherit;}
   .list-item .rowfields select.pcat{flex:1.5;}
+  .list-item .pdesc{min-height:50px;border-radius:8px;border:1px solid #393836;background:#201f1d;color:#f1ece4;padding:8px 10px;font-family:inherit;width:100%;box-sizing:border-box;resize:vertical;}
 </style>
 </head>
 <body>
@@ -84,14 +85,14 @@ const texts = {
     dashboard:'Dashboard', products:'Products', popup:'Active popup', discounts:'Active discounts',
     welcome:'Signed in as', addProduct:'Add product', name:'Name', price:'Price (RON)',
     popupTitle:'Popup title', popupText:'Popup text', save:'Save', discountName:'Discount name', discountValue:'Value (%)',
-    searchPlaceholder:'Search products...', saveRow:'Save', noProducts:'No products found', category:'Category' },
+    searchPlaceholder:'Search products...', saveRow:'Save', noProducts:'No products found', category:'Category', description:'Description / Recipe', descriptionPlaceholder:'Ingredients, allergens, etc.' },
   ro: { title:'fler manager', langBtn:'EN', loginBtn:'Autentificare', createBtn:'Creează cont',
     logoutBtn:'Ieșire', emailLabel:'Email', passwordLabel:'Parolă',
     nav:['Dashboard','Produse','Popup ofertă','Discounturi'],
     dashboard:'Panou principal', products:'Produse', popup:'Popup activ', discounts:'Discounturi active',
     welcome:'Autentificat ca', addProduct:'Adaugă produs', name:'Nume', price:'Preț (RON)',
     popupTitle:'Titlu popup', popupText:'Text popup', save:'Salvează', discountName:'Nume discount', discountValue:'Valoare (%)',
-    searchPlaceholder:'Caută produse...', saveRow:'Salvează', noProducts:'Niciun produs găsit', category:'Categorie' }
+    searchPlaceholder:'Caută produse...', saveRow:'Salvează', noProducts:'Niciun produs găsit', category:'Categorie', description:'Descriere / Rețetă', descriptionPlaceholder:'Ingrediente, alergeni, etc.' }
 };
 
 function sidebar(t, active) {
@@ -197,10 +198,13 @@ async function renderProducts() {
   filtered.forEach(p => {
     items += `
       <div class="list-item" data-id="${p.id}">
-        <div class="rowfields">
-          <input class="pname" value="${escapeHtml(p.name)}">
-          <input class="pprice" type="number" value="${p.price ?? ''}">
-          <select class="pcat">${CATEGORIES.map(c => `<option value="${escapeHtml(c)}" ${c===p.category?'selected':''}>${escapeHtml(c)}</option>`).join('')}</select>
+        <div class="rowfields" style="flex-direction:column;align-items:stretch;gap:8px;">
+          <div style="display:flex;gap:10px;">
+            <input class="pname" style="flex:2;" value="${escapeHtml(p.name)}">
+            <input class="pprice" type="number" style="flex:1;max-width:110px;" value="${p.price ?? ''}">
+            <select class="pcat" style="flex:1.5;">${CATEGORIES.map(c => `<option value="${escapeHtml(c)}" ${c===p.category?'selected':''}>${escapeHtml(c)}</option>`).join('')}</select>
+          </div>
+          <textarea class="pdesc" rows="2" placeholder="${t.descriptionPlaceholder}">${escapeHtml(p.description || '')}</textarea>
         </div>
         <button class="save-row" data-id="${p.id}">${t.saveRow}</button>
         <button class="del" data-id="${p.id}">✕</button>
@@ -220,6 +224,7 @@ async function renderProducts() {
           <div class="row"><label>${t.name}</label><input id="newName"></div>
           <div class="row"><label>${t.price}</label><input id="newPrice" type="number"></div>
           <div class="row"><label>${t.category}</label><select id="newCategory">${CATEGORIES.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')}</select></div>
+          <div class="row"><label>${t.description}</label><textarea id="newDescription" rows="2" placeholder="${t.descriptionPlaceholder}"></textarea></div>
           <div class="actions"><button id="addBtn" class="btn primary">${t.addProduct}</button></div>
           <div id="addStatus" class="status"></div>
         </div>
@@ -237,8 +242,9 @@ async function renderProducts() {
     const name = document.getElementById('newName').value.trim();
     const price = Number(document.getElementById('newPrice').value);
     const category = document.getElementById('newCategory').value;
+    const description = document.getElementById('newDescription').value.trim();
     if (!name) { document.getElementById('addStatus').textContent = 'Name required'; return; }
-    await addDoc(colRef, { name, price, category });
+    await addDoc(colRef, { name, price, category, description });
     productSearch = '';
     renderProducts();
   };
@@ -255,7 +261,8 @@ async function renderProducts() {
       const name = item.querySelector('.pname').value.trim();
       const price = Number(item.querySelector('.pprice').value);
       const category = item.querySelector('.pcat').value;
-      await updateDoc(doc(db, 'products', id), { name, price, category });
+      const description = item.querySelector('.pdesc').value.trim();
+      await updateDoc(doc(db, 'products', id), { name, price, category, description });
       btn.textContent = '✓';
       setTimeout(() => { btn.textContent = t.saveRow; }, 1200);
     };
