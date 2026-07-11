@@ -27,8 +27,16 @@
   .card{background:#1c1b19;border:1px solid #393836;border-radius:16px;padding:20px;}
   .card h3{margin:0 0 6px;font-size:14px;color:#b6ada1;}
   .card p{margin:0;font-size:24px;font-weight:700;}
-  .list-item{display:flex;justify-content:space-between;align-items:center;border:1px solid #393836;border-radius:12px;padding:10px 14px;margin-bottom:8px;}
+  .list-item{display:flex;justify-content:space-between;align-items:center;border:1px solid #393836;border-radius:12px;padding:10px 14px;margin-bottom:8px;gap:10px;}
+  .list-item input{min-height:38px;border-radius:8px;border:1px solid #393836;background:#201f1d;color:#f1ece4;padding:6px 10px;font-family:inherit;}
+  .list-item .rowfields{display:flex;gap:10px;flex:1;align-items:center;}
+  .list-item .rowfields input.pname{flex:2;}
+  .list-item .rowfields input.pprice{flex:1;max-width:110px;}
   .del{background:none;border:1px solid #664;color:#e88;border-radius:8px;padding:4px 10px;cursor:pointer;}
+  .save-row{background:none;border:1px solid #393836;color:#b6ada1;border-radius:8px;padding:4px 10px;cursor:pointer;}
+  .products-list{max-width:820px;}
+  .search-row{display:flex;gap:12px;margin-bottom:16px;max-width:820px;}
+  .search-row input{flex:1;}
 </style>
 </head>
 <body>
@@ -62,20 +70,23 @@ const root = document.getElementById('app');
 let lang = 'en';
 let currentUser = null;
 let view = 'dashboard';
+let productSearch = '';
 
 const texts = {
   en: { title:'fler manager', langBtn:'RO', loginBtn:'Login', createBtn:'Create account',
     logoutBtn:'Logout', emailLabel:'Email', passwordLabel:'Password',
-    nav:['Dashboard','Popup ofertă','Discounturi'],
+    nav:['Dashboard','Products','Popup ofertă','Discounturi'],
     dashboard:'Dashboard', products:'Products', popup:'Active popup', discounts:'Active discounts',
     welcome:'Signed in as', addProduct:'Add product', name:'Name', price:'Price (RON)',
-    popupTitle:'Popup title', popupText:'Popup text', save:'Save', discountName:'Discount name', discountValue:'Value (%)' },
+    popupTitle:'Popup title', popupText:'Popup text', save:'Save', discountName:'Discount name', discountValue:'Value (%)',
+    searchPlaceholder:'Search products...', saveRow:'Save', noProducts:'No products found' },
   ro: { title:'fler manager', langBtn:'EN', loginBtn:'Autentificare', createBtn:'Creează cont',
     logoutBtn:'Ieșire', emailLabel:'Email', passwordLabel:'Parolă',
-    nav:['Dashboard','Popup ofertă','Discounturi'],
+    nav:['Dashboard','Produse','Popup ofertă','Discounturi'],
     dashboard:'Panou principal', products:'Produse', popup:'Popup activ', discounts:'Discounturi active',
     welcome:'Autentificat ca', addProduct:'Adaugă produs', name:'Nume', price:'Preț (RON)',
-    popupTitle:'Titlu popup', popupText:'Text popup', save:'Salvează', discountName:'Nume discount', discountValue:'Valoare (%)' }
+    popupTitle:'Titlu popup', popupText:'Text popup', save:'Salvează', discountName:'Nume discount', discountValue:'Valoare (%)',
+    searchPlaceholder:'Caută produse...', saveRow:'Salvează', noProducts:'Niciun produs găsit' }
 };
 
 function sidebar(t, active) {
@@ -85,8 +96,9 @@ function sidebar(t, active) {
       <button id="langBtn" class="pill">${t.langBtn}</button>
       <nav>
         <button class="nav ${active===0?'active':''}" data-view="dashboard">${t.nav[0]}</button>
-        <button class="nav ${active===1?'active':''}" data-view="popup">${t.nav[1]}</button>
-        <button class="nav ${active===2?'active':''}" data-view="discounts">${t.nav[2]}</button>
+        <button class="nav ${active===1?'active':''}" data-view="products">${t.nav[1]}</button>
+        <button class="nav ${active===2?'active':''}" data-view="popup">${t.nav[2]}</button>
+        <button class="nav ${active===3?'active':''}" data-view="discounts">${t.nav[3]}</button>
       </nav>
     </aside>`;
 }
@@ -160,6 +172,94 @@ async function renderDashboard() {
   document.getElementById('logoutBtn').onclick = async () => { await signOut(auth); };
 }
 
+function escapeHtml(str) {
+  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function renderProducts() {
+  const t = texts[lang];
+  const colRef = collection(db, 'products');
+  const snap = await getDocs(colRef);
+  let allDocs = [];
+  snap.forEach(d => allDocs.push({ id: d.id, ...d.data() }));
+  allDocs.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+
+  const filtered = productSearch
+    ? allDocs.filter(p => (p.name||'').toLowerCase().includes(productSearch.toLowerCase()))
+    : allDocs;
+
+  let items = '';
+  filtered.forEach(p => {
+    items += `
+      <div class="list-item" data-id="${p.id}">
+        <div class="rowfields">
+          <input class="pname" value="${escapeHtml(p.name)}">
+          <input class="pprice" type="number" value="${p.price ?? ''}">
+        </div>
+        <button class="save-row" data-id="${p.id}">${t.saveRow}</button>
+        <button class="del" data-id="${p.id}">✕</button>
+      </div>`;
+  });
+  if (!filtered.length) items = `<div class="status">${t.noProducts}</div>`;
+
+  root.innerHTML = `
+    <main class="shell">
+      ${sidebar(t, 1)}
+      <section class="content">
+        <div class="topbar">
+          <h2>${t.products} (${allDocs.length})</h2>
+          <button id="logoutBtn" class="btn">${t.logoutBtn}</button>
+        </div>
+        <div class="panel">
+          <div class="row"><label>${t.name}</label><input id="newName"></div>
+          <div class="row"><label>${t.price}</label><input id="newPrice" type="number"></div>
+          <div class="actions"><button id="addBtn" class="btn primary">${t.addProduct}</button></div>
+          <div id="addStatus" class="status"></div>
+        </div>
+        <div class="search-row">
+          <input id="searchInput" placeholder="${t.searchPlaceholder}" value="${escapeHtml(productSearch)}">
+        </div>
+        <div class="products-list">${items}</div>
+      </section>
+    </main>`;
+  bindNav();
+
+  document.getElementById('logoutBtn').onclick = async () => { await signOut(auth); };
+
+  document.getElementById('addBtn').onclick = async () => {
+    const name = document.getElementById('newName').value.trim();
+    const price = Number(document.getElementById('newPrice').value);
+    if (!name) { document.getElementById('addStatus').textContent = 'Name required'; return; }
+    await addDoc(colRef, { name, price });
+    productSearch = '';
+    renderProducts();
+  };
+
+  document.getElementById('searchInput').oninput = (e) => {
+    productSearch = e.target.value;
+    renderProducts();
+  };
+
+  document.querySelectorAll('.save-row').forEach(btn => {
+    btn.onclick = async () => {
+      const id = btn.dataset.id;
+      const item = document.querySelector(`.list-item[data-id="${id}"]`);
+      const name = item.querySelector('.pname').value.trim();
+      const price = Number(item.querySelector('.pprice').value);
+      await updateDoc(doc(db, 'products', id), { name, price });
+      btn.textContent = '✓';
+      setTimeout(() => { btn.textContent = t.saveRow; }, 1200);
+    };
+  });
+
+  document.querySelectorAll('.del').forEach(btn => {
+    btn.onclick = async () => {
+      await deleteDoc(doc(db, 'products', btn.dataset.id));
+      renderProducts();
+    };
+  });
+}
+
 async function renderPopup() {
   const t = texts[lang];
   const popupRef = doc(db, 'popup', 'main');
@@ -168,15 +268,15 @@ async function renderPopup() {
 
   root.innerHTML = `
     <main class="shell">
-      ${sidebar(t, 1)}
+      ${sidebar(t, 2)}
       <section class="content">
         <div class="topbar">
           <h2>${t.popup}</h2>
           <button id="logoutBtn" class="btn">${t.logoutBtn}</button>
         </div>
         <div class="panel">
-          <div class="row"><label>${t.popupTitle}</label><input id="pTitle" value="${data.title||''}"></div>
-          <div class="row"><label>${t.popupText}</label><textarea id="pText" rows="3">${data.text||''}</textarea></div>
+          <div class="row"><label>${t.popupTitle}</label><input id="pTitle" value="${escapeHtml(data.title)}"></div>
+          <div class="row"><label>${t.popupText}</label><textarea id="pText" rows="3">${escapeHtml(data.text)}</textarea></div>
           <div class="actions"><button id="saveBtn" class="btn primary">${t.save}</button></div>
           <div id="status" class="status"></div>
         </div>
@@ -200,12 +300,12 @@ async function renderDiscounts() {
   let items = '';
   snap.forEach(d => {
     const v = d.data();
-    items += `<div class="list-item"><span>${v.name} — ${v.value}%</span><button class="del" data-id="${d.id}">✕</button></div>`;
+    items += `<div class="list-item"><span>${escapeHtml(v.name)} — ${v.value}%</span><button class="del" data-id="${d.id}">✕</button></div>`;
   });
 
   root.innerHTML = `
     <main class="shell">
-      ${sidebar(t, 2)}
+      ${sidebar(t, 3)}
       <section class="content">
         <div class="topbar">
           <h2>${t.discounts}</h2>
@@ -239,6 +339,7 @@ async function renderDiscounts() {
 function renderApp() {
   if (!currentUser) { renderLoginView(); return; }
   if (view === 'dashboard') renderDashboard();
+  else if (view === 'products') renderProducts();
   else if (view === 'popup') renderPopup();
   else if (view === 'discounts') renderDiscounts();
 }
