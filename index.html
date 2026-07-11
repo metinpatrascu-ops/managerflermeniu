@@ -44,6 +44,7 @@
     color:#b6ada1;
     text-align:left;
     padding:0 12px;
+    cursor:pointer;
   }
   .nav.active{
     background:rgba(179,93,45,.14);
@@ -108,6 +109,40 @@
     color:#b6ada1;
     min-height:18px;
   }
+  .hidden{
+    display:none;
+  }
+  .badge{
+    background:#201f1d;
+    border:1px solid #393836;
+    border-radius:999px;
+    padding:6px 14px;
+    font-size:13px;
+    color:#b6ada1;
+    width:fit-content;
+  }
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:16px;
+    margin-top:20px;
+  }
+  .card{
+    background:#1c1b19;
+    border:1px solid #393836;
+    border-radius:16px;
+    padding:20px;
+  }
+  .card h3{
+    margin:0 0 6px;
+    font-size:14px;
+    color:#b6ada1;
+  }
+  .card p{
+    margin:0;
+    font-size:24px;
+    font-weight:700;
+  }
 </style>
 </head>
 <body>
@@ -123,12 +158,7 @@ import {
   signOut
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  collection,
-  getDocs
+  getFirestore
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -144,105 +174,156 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-onAuthStateChanged(auth, (user) => {
-  console.log('Auth state:', user ? user.email : 'logged out');
-});
-
 const root = document.getElementById('app');
-
-root.innerHTML = `
-  <main class="shell">
-    <aside class="sidebar">
-      <h1>fler manager</h1>
-      <button id="langBtn" class="pill">RO</button>
-      <nav>
-        <button class="nav active">Dashboard</button>
-        <button class="nav">Popup ofertă</button>
-        <button class="nav">Discounturi</button>
-      </nav>
-    </aside>
-    <section class="content">
-      <div class="topbar">
-        <div>
-          <h2 id="title">English interface</h2>
-          <p id="subtitle">Switch with RO button.</p>
-        </div>
-        <button id="logoutBtn" class="btn">Logout</button>
-      </div>
-      <div class="panel">
-        <div class="row"><label>Email</label><input id="email" type="email" placeholder="manager@example.com"></div>
-        <div class="row"><label>Password</label><input id="password" type="password" placeholder="••••••••"></div>
-        <div class="actions">
-          <button id="loginBtn" class="btn primary">Login</button>
-          <button id="createBtn" class="btn">Create account</button>
-        </div>
-        <div id="status" class="status"></div>
-      </div>
-    </section>
-  </main>
-`;
-
-const langBtn = document.getElementById('langBtn');
-const title = document.getElementById('title');
-const subtitle = document.getElementById('subtitle');
-const loginBtn = document.getElementById('loginBtn');
-const createBtn = document.getElementById('createBtn');
-const logoutBtn = document.getElementById('logoutBtn');
-const emailInput = document.getElementById('email');
-const passwordInput = document.getElementById('password');
-const statusBox = document.getElementById('status');
-
 let lang = 'en';
+let currentUser = null;
 
-function renderLang() {
-  if (lang === 'en') {
-    title.textContent = 'English interface';
-    subtitle.textContent = 'Switch with RO button.';
-    langBtn.textContent = 'RO';
-    loginBtn.textContent = 'Login';
-    createBtn.textContent = 'Create account';
-    logoutBtn.textContent = 'Logout';
-  } else {
-    title.textContent = 'Interfață în română';
-    subtitle.textContent = 'Schimbă limba cu butonul RO/EN.';
-    langBtn.textContent = 'EN';
-    loginBtn.textContent = 'Autentificare';
-    createBtn.textContent = 'Creează cont';
-    logoutBtn.textContent = 'Ieșire';
+const texts = {
+  en: {
+    heading: 'English interface',
+    subtitle: 'Switch with RO button.',
+    langBtn: 'RO',
+    loginBtn: 'Login',
+    createBtn: 'Create account',
+    logoutBtn: 'Logout',
+    emailLabel: 'Email',
+    passwordLabel: 'Password',
+    dashboardTitle: 'Dashboard',
+    welcome: 'Signed in as',
+    products: 'Products',
+    popup: 'Active popup',
+    discounts: 'Active discounts',
+    nav: ['Dashboard', 'Popup ofertă', 'Discounturi']
+  },
+  ro: {
+    heading: 'Interfață în română',
+    subtitle: 'Schimbă limba cu butonul RO/EN.',
+    langBtn: 'EN',
+    loginBtn: 'Autentificare',
+    createBtn: 'Creează cont',
+    logoutBtn: 'Ieșire',
+    emailLabel: 'Email',
+    passwordLabel: 'Parolă',
+    dashboardTitle: 'Panou principal',
+    welcome: 'Autentificat ca',
+    products: 'Produse',
+    popup: 'Popup activ',
+    discounts: 'Discounturi active',
+    nav: ['Dashboard', 'Popup ofertă', 'Discounturi']
   }
+};
+
+function renderLoginView() {
+  const t = texts[lang];
+  root.innerHTML = `
+    <main class="shell">
+      <aside class="sidebar">
+        <h1>fler manager</h1>
+        <button id="langBtn" class="pill">${t.langBtn}</button>
+        <nav>
+          <button class="nav active">${t.nav[0]}</button>
+          <button class="nav">${t.nav[1]}</button>
+          <button class="nav">${t.nav[2]}</button>
+        </nav>
+      </aside>
+      <section class="content">
+        <div class="topbar">
+          <div>
+            <h2>${t.heading}</h2>
+            <p>${t.subtitle}</p>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="row"><label>${t.emailLabel}</label><input id="email" type="email" placeholder="manager@example.com"></div>
+          <div class="row"><label>${t.passwordLabel}</label><input id="password" type="password" placeholder="••••••••"></div>
+          <div class="actions">
+            <button id="loginBtn" class="btn primary">${t.loginBtn}</button>
+            <button id="createBtn" class="btn">${t.createBtn}</button>
+          </div>
+          <div id="status" class="status"></div>
+        </div>
+      </section>
+    </main>
+  `;
+
+  document.getElementById('langBtn').onclick = () => {
+    lang = lang === 'en' ? 'ro' : 'en';
+    renderLoginView();
+  };
+
+  document.getElementById('loginBtn').onclick = async () => {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const status = document.getElementById('status');
+    status.textContent = '';
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      status.textContent = err.message;
+    }
+  };
+
+  document.getElementById('createBtn').onclick = async () => {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const status = document.getElementById('status');
+    status.textContent = '';
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      status.textContent = err.message;
+    }
+  };
 }
 
-langBtn.onclick = () => {
-  lang = lang === 'en' ? 'ro' : 'en';
-  renderLang();
-};
+function renderDashboard() {
+  const t = texts[lang];
+  root.innerHTML = `
+    <main class="shell">
+      <aside class="sidebar">
+        <h1>fler manager</h1>
+        <button id="langBtn" class="pill">${t.langBtn}</button>
+        <nav>
+          <button class="nav active">${t.nav[0]}</button>
+          <button class="nav">${t.nav[1]}</button>
+          <button class="nav">${t.nav[2]}</button>
+        </nav>
+      </aside>
+      <section class="content">
+        <div class="topbar">
+          <div>
+            <h2>${t.dashboardTitle}</h2>
+            <div class="badge">${t.welcome}: ${currentUser.email}</div>
+          </div>
+          <button id="logoutBtn" class="btn">${t.logoutBtn}</button>
+        </div>
+        <div class="cards">
+          <div class="card"><h3>${t.products}</h3><p>—</p></div>
+          <div class="card"><h3>${t.popup}</h3><p>—</p></div>
+          <div class="card"><h3>${t.discounts}</h3><p>—</p></div>
+        </div>
+      </section>
+    </main>
+  `;
 
-loginBtn.onclick = async () => {
-  statusBox.textContent = '';
-  try {
-    await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
-    statusBox.textContent = 'Login OK';
-  } catch (err) {
-    statusBox.textContent = err.message;
+  document.getElementById('langBtn').onclick = () => {
+    lang = lang === 'en' ? 'ro' : 'en';
+    renderDashboard();
+  };
+
+  document.getElementById('logoutBtn').onclick = async () => {
+    await signOut(auth);
+  };
+}
+
+onAuthStateChanged(auth, (user) => {
+  currentUser = user;
+  if (user) {
+    renderDashboard();
+  } else {
+    renderLoginView();
   }
-};
-
-createBtn.onclick = async () => {
-  statusBox.textContent = '';
-  try {
-    await createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
-    statusBox.textContent = 'Account created';
-  } catch (err) {
-    statusBox.textContent = err.message;
-  }
-};
-
-logoutBtn.onclick = async () => {
-  await signOut(auth);
-  statusBox.textContent = 'Logged out';
-};
-
-renderLang();
+});
 </script>
 </body>
 </html>
