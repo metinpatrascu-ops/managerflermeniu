@@ -103,6 +103,11 @@
     background:#b35d2d;
     border-color:#b35d2d;
   }
+  .status{
+    font-size:13px;
+    color:#b6ada1;
+    min-height:18px;
+  }
 </style>
 </head>
 <body>
@@ -127,12 +132,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "PUNE_API_KEY",
-  authDomain: "PUNE_AUTH_DOMAIN",
-  projectId: "PUNE_PROJECT_ID",
-  storageBucket: "PUNE_STORAGE_BUCKET",
-  messagingSenderId: "PUNE_MESSAGING_SENDER_ID",
-  appId: "PUNE_APP_ID"
+  apiKey: "AIzaSyAHqazy7HDgsdWaw_46YFvsI-7lPSXYtwM",
+  authDomain: "fler-manager.firebaseapp.com",
+  projectId: "fler-manager",
+  storageBucket: "fler-manager.firebasestorage.app",
+  messagingSenderId: "141246687330",
+  appId: "1:141246687330:web:46084b41f23a4e7755493b"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -157,4 +162,87 @@ root.innerHTML = `
       </nav>
     </aside>
     <section class="content">
-      
+      <div class="topbar">
+        <div>
+          <h2 id="title">English interface</h2>
+          <p id="subtitle">Switch with RO button.</p>
+        </div>
+        <button id="logoutBtn" class="btn">Logout</button>
+      </div>
+      <div class="panel">
+        <div class="row"><label>Email</label><input id="email" type="email" placeholder="manager@example.com"></div>
+        <div class="row"><label>Password</label><input id="password" type="password" placeholder="••••••••"></div>
+        <div class="actions">
+          <button id="loginBtn" class="btn primary">Login</button>
+          <button id="createBtn" class="btn">Create account</button>
+        </div>
+        <div id="status" class="status"></div>
+      </div>
+    </section>
+  </main>
+`;
+
+const langBtn = document.getElementById('langBtn');
+const title = document.getElementById('title');
+const subtitle = document.getElementById('subtitle');
+const loginBtn = document.getElementById('loginBtn');
+const createBtn = document.getElementById('createBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const emailInput = document.getElementById('email');
+const passwordInput = document.getElementById('password');
+const statusBox = document.getElementById('status');
+
+let lang = 'en';
+
+function renderLang() {
+  if (lang === 'en') {
+    title.textContent = 'English interface';
+    subtitle.textContent = 'Switch with RO button.';
+    langBtn.textContent = 'RO';
+    loginBtn.textContent = 'Login';
+    createBtn.textContent = 'Create account';
+    logoutBtn.textContent = 'Logout';
+  } else {
+    title.textContent = 'Interfață în română';
+    subtitle.textContent = 'Schimbă limba cu butonul RO/EN.';
+    langBtn.textContent = 'EN';
+    loginBtn.textContent = 'Autentificare';
+    createBtn.textContent = 'Creează cont';
+    logoutBtn.textContent = 'Ieșire';
+  }
+}
+
+langBtn.onclick = () => {
+  lang = lang === 'en' ? 'ro' : 'en';
+  renderLang();
+};
+
+loginBtn.onclick = async () => {
+  statusBox.textContent = '';
+  try {
+    await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
+    statusBox.textContent = 'Login OK';
+  } catch (err) {
+    statusBox.textContent = err.message;
+  }
+};
+
+createBtn.onclick = async () => {
+  statusBox.textContent = '';
+  try {
+    await createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
+    statusBox.textContent = 'Account created';
+  } catch (err) {
+    statusBox.textContent = err.message;
+  }
+};
+
+logoutBtn.onclick = async () => {
+  await signOut(auth);
+  statusBox.textContent = 'Logged out';
+};
+
+renderLang();
+</script>
+</body>
+</html>
