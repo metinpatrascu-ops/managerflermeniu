@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>fler manager</title>
+<style>
+  body{
+    margin:0;
+    font-family:Inter,system-ui,sans-serif;
+    background:#171614;
+    color:#f1ece4;
+  }
+  #app{
+    min-height:100vh;
+  }
+  .shell{
+    display:grid;
+    grid-template-columns:260px 1fr;
+    min-height:100vh;
+  }
+  .sidebar{
+    background:#1c1b19;
+    border-right:1px solid #393836;
+    padding:24px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+  .pill{
+    min-height:38px;
+    border-radius:12px;
+    border:1px solid #393836;
+    background:#201f1d;
+    color:#f1ece4;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .nav{
+    min-height:44px;
+    border:none;
+    border-radius:12px;
+    background:transparent;
+    color:#b6ada1;
+    text-align:left;
+    padding:0 12px;
+  }
+  .nav.active{
+    background:rgba(179,93,45,.14);
+    color:#f1ece4;
+  }
+  .content{
+    padding:32px;
+  }
+  .topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:24px;
+  }
+  .panel{
+    background:#1c1b19;
+    border:1px solid #393836;
+    border-radius:18px;
+    padding:24px;
+    display:grid;
+    gap:16px;
+    max-width:420px;
+  }
+  .row{
+    display:grid;
+    gap:6px;
+  }
+  .row label{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:#b6ada1;
+  }
+  .row input{
+    min-height:46px;
+    border-radius:12px;
+    border:1px solid #393836;
+    background:#201f1d;
+    color:#f1ece4;
+    padding:0 14px;
+  }
+  .actions{
+    display:flex;
+    gap:12px;
+  }
+  .btn{
+    min-height:46px;
+    padding:0 16px;
+    border-radius:12px;
+    border:1px solid #393836;
+    background:#201f1d;
+    color:#f1ece4;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .btn.primary{
+    background:#b35d2d;
+    border-color:#b35d2d;
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "PUNE_API_KEY",
+  authDomain: "PUNE_AUTH_DOMAIN",
+  projectId: "PUNE_PROJECT_ID",
+  storageBucket: "PUNE_STORAGE_BUCKET",
+  messagingSenderId: "PUNE_MESSAGING_SENDER_ID",
+  appId: "PUNE_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+onAuthStateChanged(auth, (user) => {
+  console.log('Auth state:', user ? user.email : 'logged out');
+});
+
+const root = document.getElementById('app');
+
+root.innerHTML = `
+  <main class="shell">
+    <aside class="sidebar">
+      <h1>fler manager</h1>
+      <button id="langBtn" class="pill">RO</button>
+      <nav>
+        <button class="nav active">Dashboard</button>
+        <button class="nav">Popup ofertă</button>
+        <button class="nav">Discounturi</button>
+      </nav>
+    </aside>
+    <section class="content">
+      
