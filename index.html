@@ -521,9 +521,19 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   const t = texts[lang];
-  const reqSnap = await getDoc(doc(db, 'userRequests', user.uid));
-  if (!reqSnap.exists() || reqSnap.data().status !== 'approved') {
-    const status = reqSnap.exists() ? reqSnap.data().status : 'pending';
+  let reqSnap = await getDoc(doc(db, 'userRequests', user.uid));
+
+  if (!reqSnap.exists()) {
+    await setDoc(doc(db, 'userRequests', user.uid), {
+      email: user.email,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    });
+    reqSnap = await getDoc(doc(db, 'userRequests', user.uid));
+  }
+
+  if (reqSnap.data().status !== 'approved') {
+    const status = reqSnap.data().status;
     pendingMessage = status === 'rejected' ? t.accountRejected : t.accountPending;
     await signOut(auth);
     currentUser = null;
