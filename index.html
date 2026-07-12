@@ -109,33 +109,7 @@ const firebaseConfig = {
 
 const CATEGORIES = ["OPENINGS — ALL DAY", "LAYERS", "COMPOSITIONS", "ENSEMBLE", "CENTERPIECE", "HANDHELD", "ADDITIONS", "FINALE", "DAILY RITUAL", "COCKTAILS COMPOSITIONS", "ZERO PROOF STUDIES", "SHOTS RITUALS", "SPIRITS & WINES THE COLLECTION", "REFRESHMENTS & BEER"];
 
-const OWNER_EMAIL = "metinpatrascu@gmail.com";
-
-// --- EmailJS config: inlocuieste cu datele contului tau EmailJS (emailjs.com, gratuit) ---
-const EMAILJS_SERVICE_ID = "YOUR_SERVICE_ID";
-const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID";
-const EMAILJS_PUBLIC_KEY = "YOUR_PUBLIC_KEY";
-let emailjsReady = false;
-try {
-  if (window.emailjs && EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY") {
-    window.emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
-    emailjsReady = true;
-  }
-} catch (e) {}
-
-async function notifyOwnerNewRequest(newUserEmail) {
-  if (!emailjsReady) {
-    console.warn("EmailJS nu este configurat. Adauga SERVICE_ID, TEMPLATE_ID si PUBLIC_KEY in cod.");
-    return;
-  }
-  try {
-    await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-      to_email: OWNER_EMAIL,
-      new_user_email: newUserEmail,
-      message: "Un utilizator nou a solicitat acces la fler manager: " + newUserEmail
-    });
-  } catch (e) { console.error("Eroare trimitere email:", e); }
-}
+const OWNER_EMAILS = ["metinpatrascu@gmail.com", "contact@flercafe.ro"];
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -224,26 +198,31 @@ async function renderLoginView() {
     </main>`;
   bindNav();
   document.getElementById('loginBtn').onclick = async () => {
-    const email = document.getElementById('email').value;
+    const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
     const status = document.getElementById('status');
+    if (!email) { status.textContent = 'Introdu un email valid.'; return; }
     try { await signInWithEmailAndPassword(auth, email, password); }
     catch (err) { status.textContent = err.message; }
   };
   document.getElementById('createBtn').onclick = async () => {
-    const email = document.getElementById('email').value;
+    const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
     const status = document.getElementById('status');
+    if (!email) { status.textContent = 'Introdu un email valid.'; return; }
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
-      await setDoc(doc(db, 'userRequests', cred.user.uid), {
-        email: cred.user.email,
-        status: 'pending',
-        createdAt: new Date().toISOString()
-      });
-      await notifyOwnerNewRequest(cred.user.email);
-      pendingMessage = t.requestSent;
-      await signOut(auth);
+      if (!OWNER_EMAILS.includes(cred.user.email)) {
+        try {
+          await setDoc(doc(db, 'userRequests', cred.user.uid), {
+            email: cred.user.email,
+            status: 'pending',
+            createdAt: new Date().toISOString()
+          });
+        } catch (e) { console.warn('Nu s-a putut salva cererea:', e); }
+        pendingMessage = t.requestSent;
+        await signOut(auth);
+      }
     }
     catch (err) { status.textContent = err.message; }
   };
@@ -254,7 +233,7 @@ async function renderDashboard() {
   const productsSnap = await getDocs(collection(db, 'products'));
   const popupSnap = await getDoc(doc(db, 'popup', 'main'));
   const discountsSnap = await getDocs(collection(db, 'discounts'));
-  const isOwner = currentUser.email === OWNER_EMAIL;
+  const isOwner = OWNER_EMAILS.includes(currentUser.email);
 
   root.innerHTML = `
     <main class="shell">
@@ -280,7 +259,7 @@ async function renderDashboard() {
 
 async function renderProducts() {
   const t = texts[lang];
-  const isOwner = currentUser.email === OWNER_EMAIL;
+  const isOwner = OWNER_EMAILS.includes(currentUser.email);
   const colRef = collection(db, 'products');
   const snap = await getDocs(colRef);
   let allDocs = [];
@@ -375,7 +354,7 @@ async function renderProducts() {
 
 async function renderPopup() {
   const t = texts[lang];
-  const isOwner = currentUser.email === OWNER_EMAIL;
+  const isOwner = OWNER_EMAILS.includes(currentUser.email);
   const popupRef = doc(db, 'popup', 'main');
   const snap = await getDoc(popupRef);
   const data = snap.exists() ? snap.data() : { title:'', text:'' };
@@ -409,7 +388,7 @@ async function renderPopup() {
 
 async function renderDiscounts() {
   const t = texts[lang];
-  const isOwner = currentUser.email === OWNER_EMAIL;
+  const isOwner = OWNER_EMAILS.includes(currentUser.email);
   const colRef = collection(db, 'discounts');
   const snap = await getDocs(colRef);
   let items = '';
@@ -453,7 +432,7 @@ async function renderDiscounts() {
 
 async function renderUsers() {
   const t = texts[lang];
-  if (currentUser.email !== OWNER_EMAIL) { view = 'dashboard'; renderApp(); return; }
+  if (!OWNER_EMAILS.includes(currentUser.email)) { view = 'dashboard'; renderApp(); return; }
 
   const snap = await getDocs(collection(db, 'userRequests'));
   let rows = [];
@@ -512,7 +491,7 @@ function renderApp() {
 onAuthStateChanged(auth, async (user) => {
   if (!user) { currentUser = null; view = 'dashboard'; renderApp(); return; }
 
-  if (user.email === OWNER_EMAIL) {
+  if (OWNER_EMAILS.includes(user.email)) {
     currentUser = user;
     view = 'dashboard';
     pendingMessage = '';
@@ -521,31 +500,40 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   const t = texts[lang];
-  let reqSnap = await getDoc(doc(db, 'userRequests', user.uid));
+  try {
+    let reqSnap = await getDoc(doc(db, 'userRequests', user.uid));
 
-  if (!reqSnap.exists()) {
-    await setDoc(doc(db, 'userRequests', user.uid), {
-      email: user.email,
-      status: 'pending',
-      createdAt: new Date().toISOString()
-    });
-    reqSnap = await getDoc(doc(db, 'userRequests', user.uid));
-  }
+    if (!reqSnap.exists()) {
+      await setDoc(doc(db, 'userRequests', user.uid), {
+        email: user.email,
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      });
+      reqSnap = await getDoc(doc(db, 'userRequests', user.uid));
+    }
 
-  if (reqSnap.data().status !== 'approved') {
-    const status = reqSnap.data().status;
-    pendingMessage = status === 'rejected' ? t.accountRejected : t.accountPending;
+    if (!reqSnap.exists() || reqSnap.data().status !== 'approved') {
+      const status = reqSnap.exists() ? reqSnap.data().status : 'pending';
+      pendingMessage = status === 'rejected' ? t.accountRejected : t.accountPending;
+      await signOut(auth);
+      currentUser = null;
+      view = 'dashboard';
+      renderApp();
+      return;
+    }
+
+    currentUser = user;
+    view = 'dashboard';
+    pendingMessage = '';
+    renderApp();
+  } catch (err) {
+    console.error('Auth flow error:', err);
+    pendingMessage = 'Cont in asteptare aprobare (nu s-a putut verifica automat).';
     await signOut(auth);
     currentUser = null;
     view = 'dashboard';
     renderApp();
-    return;
   }
-
-  currentUser = user;
-  view = 'dashboard';
-  pendingMessage = '';
-  renderApp();
 });
 </script>
 </body>
